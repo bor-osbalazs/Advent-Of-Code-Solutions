@@ -7,12 +7,13 @@
 using namespace std;
 
 vector<string> ReadInput(string inputPath);
-int GetCorrectPasswordCount(vector<string> inputLines);
+int GetCorrectPasswordCount(vector<string> inputLines, bool isOldSystem);
 int GetMinimumOccurrence(string line);
 int GetMaximumOccurrence(string line);
 string GetPassword(string line);
 string GetPasswordCharacter(string line);
-bool IsValidPassword(string password, int minOccurrence, int maxOccurrence, string passwordCharacter);
+bool IsValidPasswordOld(string password, int minOccurrence, int maxOccurrence, string passwordCharacter);
+bool IsValidPasswordNew(string password, int firstIndex, int secondIndex, string passwordCharacter);
 
 int main()
 {
@@ -21,9 +22,11 @@ int main()
     // Read the input file
     vector<string> inputLines = ReadInput(inputPath);
     // Get the correct passwords count (first part answer)
-    int correctPasswordsCount = GetCorrectPasswordCount(inputLines);
+    int correctPasswordsCountOld = GetCorrectPasswordCount(inputLines, true);
+    int correctPasswordsCountNew = GetCorrectPasswordCount(inputLines, false);
 
-    cout << "The valid password count is: " << correctPasswordsCount << endl;
+    cout << "The valid password count with the old system is: " << correctPasswordsCountOld << endl;
+    cout << "The valid password count with the new system is: " << correctPasswordsCountNew << endl;
 
     return 0;
 }
@@ -50,7 +53,7 @@ vector<string> ReadInput(string inputPath)
     return inputLines;
 }
 
-int GetCorrectPasswordCount(const vector<string> inputLines)
+int GetCorrectPasswordCount(const vector<string> inputLines, bool isOldSystem)
 {
     int minOccurrence = 0;
     int maxoccurrence = 0;
@@ -59,16 +62,34 @@ int GetCorrectPasswordCount(const vector<string> inputLines)
 
     int validCounter = 0;
 
-    for (string currentLine : inputLines)
+    if (isOldSystem == true)
     {
-        minOccurrence = GetMinimumOccurrence(currentLine);
-        maxoccurrence = GetMaximumOccurrence(currentLine);
-        password = GetPassword(currentLine);
-        passwordCharacter = GetPasswordCharacter(currentLine);
-
-        if(IsValidPassword(password, minOccurrence, maxoccurrence, passwordCharacter) == true)
+        for (string currentLine : inputLines)
         {
-            validCounter++;
+            minOccurrence = GetMinimumOccurrence(currentLine);
+            maxoccurrence = GetMaximumOccurrence(currentLine);
+            password = GetPassword(currentLine);
+            passwordCharacter = GetPasswordCharacter(currentLine);
+
+            if(IsValidPasswordOld(password, minOccurrence, maxoccurrence, passwordCharacter) == true)
+            {
+                validCounter++;
+            }
+        }
+    }
+    else
+    {
+        for (string currentLine : inputLines)
+        {
+            minOccurrence = GetMinimumOccurrence(currentLine); // First index
+            maxoccurrence = GetMaximumOccurrence(currentLine); // Second index
+            password = GetPassword(currentLine);
+            passwordCharacter = GetPasswordCharacter(currentLine);
+
+            if(IsValidPasswordNew(password, minOccurrence, maxoccurrence, passwordCharacter) == true)
+            {
+                validCounter++;
+            }
         }
     }
 
@@ -181,7 +202,7 @@ string GetPassword(string line)
     return password;
 }
 
-bool IsValidPassword(string password, int minOccurrence, int maxOccurrence, string passwordCharacter)
+bool IsValidPasswordOld(string password, int minOccurrence, int maxOccurrence, string passwordCharacter)
 {
     bool isValid = false;
     int characterCounter = 0;
@@ -197,6 +218,29 @@ bool IsValidPassword(string password, int minOccurrence, int maxOccurrence, stri
     if (characterCounter >= minOccurrence && characterCounter <= maxOccurrence)
     {
         isValid = true;
+    }
+
+    return isValid;
+}
+
+bool IsValidPasswordNew(string password, int firstIndex, int secondIndex, string passwordCharacter)
+{
+    int realFirstIndex = firstIndex - 1;
+    int realSecondIndex = secondIndex - 1;
+
+    bool isValid = false;
+
+    if(password[realFirstIndex] == passwordCharacter[0] && password[realSecondIndex] != passwordCharacter[0])
+    {
+        isValid = true;
+    }
+    else if (password[realSecondIndex] == passwordCharacter[0] && password[realFirstIndex] != passwordCharacter[0])
+    {
+        isValid = true;
+    }
+    else
+    {
+        isValid = false;
     }
 
     return isValid;
