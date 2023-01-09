@@ -6,8 +6,9 @@
 using namespace std;
 
 vector<string> ReadInput(string inputPath);
-int GetTreeCount(vector<string> inputLines);
-int GetCurrentIndex(int currentIndex, int lineLength);
+int GetTreeCount(vector<string> inputLines, string slopeType, int downNumber);
+int GetCurrentIndex(int currentIndex, int lineLength, string slopeType);
+long GetMultipleSlopeAnswer(vector<string> inputLines);
 
 int main(int argc, char const *argv[])
 {
@@ -15,9 +16,13 @@ int main(int argc, char const *argv[])
 
     vector<string> inputLines = ReadInput(inputPath);
 
-    int treeCounter = GetTreeCount(inputLines);
-
+    // Day 3 Part 1 Answer
+    int treeCounter = GetTreeCount(inputLines, "r3", 1);
     cout << treeCounter << endl;
+
+    // Day 3 Part 2 Answer
+    long slopeTreeCounter = GetMultipleSlopeAnswer(inputLines);
+    cout << slopeTreeCounter << endl;
 
     return 0;
 }
@@ -42,42 +47,148 @@ vector<string> ReadInput(string inputPath)
     return inputLines;
 }
 
-int GetTreeCount(vector<string> inputLines)
+int GetTreeCount(vector<string> inputLines, string slopeType, int downNumber)
 {
     int treeCounter = 0;
     int currentIndex = 0;
+    int lineCounter = 0;
 
     for (string currentLine : inputLines)
     {
-        if (currentLine[currentIndex] == '#')
+        if (downNumber == 1)
         {
-            treeCounter++;
+            if (currentLine[currentIndex] == '#')
+            {
+                treeCounter++;
+            }
+            // Change after every line
+            currentIndex = GetCurrentIndex(currentIndex, inputLines.at(0).length(), slopeType);
+        }
+        else if (downNumber == 2)
+        {
+            if (lineCounter % 2 == 0 && currentLine[currentIndex] == '#')
+            {
+                treeCounter++;
+            }
+
+            // CurrentIndex MUST be inside the if statement because it changes after every two lines: right 1, down 2.
+            if (lineCounter % 2 == 0)
+            {
+                currentIndex = GetCurrentIndex(currentIndex, inputLines.at(0).length(), slopeType);
+            }
         }
 
-        currentIndex = GetCurrentIndex(currentIndex, inputLines.at(0).length());
+        lineCounter++;
     }
 
     return treeCounter;
 }
 
-int GetCurrentIndex(int currentIndex, int lineLength)
+int GetCurrentIndex(int currentIndex, int lineLength, string slopeType)
 {
-    if (currentIndex == lineLength - 1)
+    if (slopeType == "r1")
     {
-        currentIndex = 2;
+        if (currentIndex == lineLength - 1)
+        {
+            currentIndex = 0;
+        }
+        else
+        {
+            currentIndex++;
+        }
     }
-    else if (currentIndex == lineLength - 2)
+    else if (slopeType == "r3")
     {
-        currentIndex = 1;
+        if (currentIndex == lineLength - 1)
+        {
+            currentIndex = 2;
+        }
+        else if (currentIndex == lineLength - 2)
+        {
+            currentIndex = 1;
+        }
+        else if (currentIndex == lineLength - 3)
+        {
+            currentIndex = 0;
+        }
+        else
+        {
+            currentIndex += 3;
+        }
     }
-    else if (currentIndex == lineLength - 3)
+    else if (slopeType == "r5")
     {
-        currentIndex = 0;
+        if (currentIndex == lineLength - 1)
+        {
+            currentIndex = 4;
+        }
+        else if (currentIndex == lineLength - 2)
+        {
+            currentIndex = 3;
+        }
+        else if (currentIndex == lineLength - 3)
+        {
+            currentIndex = 2;
+        }
+        else if (currentIndex == lineLength - 4)
+        {
+            currentIndex = 1;
+        }
+        else if (currentIndex == lineLength - 5)
+        {
+            currentIndex = 0;
+        }
+        else
+        {
+            currentIndex += 5;
+        }
     }
-    else
+    else if (slopeType == "r7")
     {
-        currentIndex += 3;
+        if (currentIndex == lineLength - 1)
+        {
+            currentIndex = 6;
+        }
+        else if (currentIndex == lineLength - 2)
+        {
+            currentIndex = 5;
+        }
+        else if (currentIndex == lineLength - 3)
+        {
+            currentIndex = 4;
+        }
+        else if (currentIndex == lineLength - 4)
+        {
+            currentIndex = 3;
+        }
+        else if (currentIndex == lineLength - 5)
+        {
+            currentIndex = 2;
+        }
+        else if (currentIndex == lineLength - 6)
+        {
+            currentIndex = 1;
+        }
+        else if (currentIndex == lineLength - 7)
+        {
+            currentIndex = 0;
+        }
+        else
+        {
+            currentIndex += 7;
+        }
     }
 
     return currentIndex;
+}
+
+long GetMultipleSlopeAnswer(vector<string> inputLines)
+{
+    int slopeOne = GetTreeCount(inputLines, "r1", 1); // 53
+    int slopeTwo = GetTreeCount(inputLines, "r3", 1); // 282
+    int slopeThree = GetTreeCount(inputLines, "r5", 1); // 54
+    int slopeFour = GetTreeCount(inputLines, "r7", 1); // 54
+    int slopeFive = GetTreeCount(inputLines, "r1", 2); // 22
+
+    return slopeOne * slopeTwo * slopeThree * slopeFour * slopeFive;
 }
