@@ -2,12 +2,17 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <cctype>
 
 using namespace std;
 
 vector<string> ReadInput(string inputPath);
 int GetValidPassportCount(vector<string> inputLines, bool ignoreCid);
 string GetValue(string currentLine, string dataToFind);
+bool IsValid(string dataType, string dataValue);
+bool IsEveryCharacterHex(string line);
+bool IsEveryCharacterNum(string line);
+int ConvertToInt(string line);
 
 int main()
 {
@@ -56,22 +61,55 @@ int GetValidPassportCount(vector<string> inputLines, bool ignoreCid)
 
     for (string line : inputLines)
     {
-        bool isValidByr = GetValue(line, "byr") != "X"; // Birt Year
-        bool isValidIyr = GetValue(line, "iyr") != "X"; // Issue Year
-        bool isValidEyr = GetValue(line, "eyr") != "X"; // Expiration Year
-        bool isValidHgt = GetValue(line, "hgt") != "X"; // Height
-        bool isValidHcl = GetValue(line, "hcl") != "X"; // Hair Color
-        bool isValidEcl = GetValue(line, "ecl") != "X"; // Eye color
-        bool isValidPid = GetValue(line, "pid") != "X"; // Passport ID
-        bool isValidCid = GetValue(line, "cid") != "X"; // Country ID
+        // Birth Year
+        string valueByr = GetValue(line, "byr");
+        bool isPresentByr = valueByr != "X";
+        bool isValidByr = IsValid("byr", valueByr);
 
-        if (ignoreCid == true && isValidByr == true && isValidIyr == true && isValidEyr == true && isValidHgt == true &&
-            isValidHcl == true && isValidEcl == true && isValidPid == true)
+        // Issue Year
+        string valueIyr = GetValue(line, "iyr");
+        bool isPresentIyr = valueIyr != "X";
+        bool isValidIyr = IsValid("iyr", valueIyr);
+        
+        // Expiration Year
+        string valueEyr = GetValue(line, "eyr");
+        bool isPresentEyr = valueEyr != "X";
+        bool isValidEyr = IsValid("eyr", valueEyr);
+
+        // Height
+        string valueHgt = GetValue(line, "hgt");
+        bool isPresentHgt = valueHgt != "X";
+        bool isValidHgt = IsValid("hgt", valueHgt);
+
+        // Hair Color
+        string valueHcl = GetValue(line, "hcl");
+        bool isPresentHcl = valueHcl != "X";
+        bool isValidHcl = IsValid("hcl", valueHcl);
+
+        // Eye color
+        string valueEcl = GetValue(line, "ecl");
+        bool isPresentEcl = valueEcl != "X";
+        bool isValidEcl = IsValid("ecl", valueEcl);
+
+        // Passport ID
+        string valuePid = GetValue(line, "pid");
+        bool isPresentPid = valuePid != "X";
+        bool isValidPid = IsValid("pid", valuePid);
+
+        // Country ID
+        bool isPresentCid = GetValue(line, "cid") != "X";
+
+        if (ignoreCid == true && isPresentByr == true && isPresentIyr == true && isPresentEyr == true && isPresentHgt == true &&
+                                 isPresentHcl == true && isPresentEcl == true && isPresentPid == true &&
+                                 isValidByr == true && isValidIyr == true && isValidEyr == true && isValidHgt == true &&
+                                 isValidHcl == true && isValidEcl == true && isValidPid == true)
         {
             validPassportCounter++;
         }
-        else if (ignoreCid == false && isValidByr == true && isValidIyr == true && isValidEyr == true && isValidHgt == true &&
-                 isValidHcl == true && isValidEcl == true && isValidPid == true && isValidCid == true)
+        else if (ignoreCid == false && isPresentByr == true && isPresentIyr == true && isPresentEyr == true && isPresentHgt == true &&
+                                       isPresentHcl == true && isPresentEcl == true && isPresentPid == true && isPresentCid == true &&
+                                       isValidByr == true && isValidIyr == true && isValidEyr == true && isValidHgt == true &&
+                                       isValidHcl == true && isValidEcl == true && isValidPid == true)
         {
             validPassportCounter++;
         }
@@ -98,13 +136,6 @@ string GetValue(string currentLine, string dataToFind)
             else
             {
                 returnValue = returnValue.substr(4, 256);
-
-                if (dataToFind == "hgt")
-                {
-                    returnValue = returnValue.substr(0, returnValue.find("cm"));
-                }
-
-                returnValue = "";
                 break;
             }
         }
@@ -115,4 +146,98 @@ string GetValue(string currentLine, string dataToFind)
     }
 
     return returnValue;
+}
+
+bool IsValid(string dataType, string dataValue)
+{
+    string tempString = dataValue;
+
+    if (dataType == "byr" && dataValue.length() == 4 && stoi(dataValue, nullptr, 10) >= 1920 && stoi(dataValue, nullptr, 10) <= 2002)
+    {
+        return true;
+    }
+    else if (dataType == "iyr" && dataValue.length() == 4 && stoi(dataValue, nullptr, 10) >= 2010 && stoi(dataValue, nullptr, 10) <= 2020)
+    {
+        return true;
+    }
+    else if (dataType == "eyr" && dataValue.length() == 4 && stoi(dataValue, nullptr, 10) >= 2020 && stoi(dataValue, nullptr, 10) <= 2030)
+    {
+        return true;
+    }
+    else if (dataType == "hgt" && dataValue.find("cm") != string::npos && ConvertToInt(tempString.substr(0, dataValue.find("cm"))) >= 150 &&
+                                                                          ConvertToInt(tempString.substr(0, dataValue.find("cm"))) <= 193 || 
+                                  dataValue.find("in") != string::npos && ConvertToInt(tempString.substr(0, dataValue.find("in"))) >= 59 &&
+                                                                          ConvertToInt(tempString.substr(0, dataValue.find("in"))) <= 76)
+    {
+        return true;
+    }
+    else if (dataType == "hcl" && dataValue[0] == '#' && dataValue.length() == 7 && IsEveryCharacterHex(dataValue) == true)
+    {
+        return true;
+    }
+    else if (dataType == "ecl" && (dataValue == "amb" || dataValue == "blu" || dataValue == "brn" ||  dataValue == "gry" || 
+                                   dataValue == "grn" || dataValue == "hzl" || dataValue == "oth"))
+    {
+        return true;
+    }
+    else if (dataType == "pid" && dataValue.length() == 9 && IsEveryCharacterNum(dataValue))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool IsEveryCharacterHex(string line)
+{
+    bool isHex = false;
+
+    for (char character : line)
+    {
+        if (character == '#' || isxdigit(character) != 0)
+        {
+            isHex = true;
+        }
+        else
+        {
+            isHex = false;
+            break;
+        }
+    }
+
+    return isHex;
+}
+
+bool IsEveryCharacterNum(string line)
+{
+    bool isNum = false;
+
+    for (char character : line)
+    {
+        if (isdigit(character) != 0)
+        {
+            isNum = true;
+        }
+        else
+        {
+            isNum = false;
+            break;
+        }
+    }
+
+    return isNum;
+}
+
+int ConvertToInt(string line)
+{
+    if (IsEveryCharacterNum(line) == true)
+    {
+        return stoi(line, nullptr, 10);
+    }
+    else
+    {
+        return 0;
+    }
 }
